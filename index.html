@@ -1311,7 +1311,7 @@ function seasonalHits(qTerms){
 }
 
 /* ---- Anonymous search logging (fire-and-forget). Empty endpoint = disabled. ---- */
-const SEARCH_LOG_ENDPOINT=''; /*SEARCH_LOG_ENDPOINT*/
+const SEARCH_LOG_ENDPOINT='https://script.google.com/macros/s/AKfycbwKLl0yddWvXIZJxswU7usFU2uak7M3Y_2ZLdSFekCOmnFgzMSMmWkGDJ1qGnwEObgJUg/exec'; /*SEARCH_LOG_ENDPOINT*/
 let _logTimer=null, _lastLogged='';
 function currentPage(){ return (location.hash||'').replace(/^#/,'')||'home'; }
 function sendSearchLog(q, count){
