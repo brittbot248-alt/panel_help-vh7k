@@ -272,6 +272,18 @@ footer.site .footer-logo:focus-visible{outline:3px solid #fff;outline-offset:3px
 .home-tools h2{font-size:1.7rem}
 
 /* ---- v2 ---- */
+.pchips-wrap{margin:14px 0 18px;padding:14px 16px;background:#f7f7f7;border-radius:16px}
+.pchips-wrap .chips{justify-content:flex-start}
+.pchips-wrap .chips-lbl{margin:0 0 10px}
+.pick-hint{margin:-4px 0 12px}
+.res-count{font-weight:600;color:#111;margin:4px 0 12px}
+.gcount{margin:12px 0 0;font-weight:600;color:#111;min-height:1.2em}
+.gcount a{color:#a8001f;margin-left:6px}
+#list .acc{scroll-margin-top:12px}
+@keyframes accflash{0%{box-shadow:0 0 0 4px #da0029;background:#fff5f6}100%{box-shadow:0 0 0 0 rgba(218,0,41,0);background:#fff}}
+.acc.flash{animation:accflash 2.2s ease-out}
+@media (prefers-reduced-motion:reduce){.acc.flash{animation:none;box-shadow:0 0 0 3px #da0029}}
+@media print{.pchips-wrap{display:none}}
 .p-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .p-head h2{flex:1 1 260px;margin:0}
 .p-img{margin:0;background:#fff;border:1px solid #e0dede;border-radius:16px;padding:10px;box-shadow:0 4px 18px rgba(0,0,0,.06);text-align:center;flex:0 0 auto}
@@ -329,7 +341,7 @@ body:not([data-view="home"]) .hero{padding:34px 24px 30px}
 <p class="hero-sub">Simple answers to common questions. No technical skills needed.</p>
 <div class="hero-search search-wrap"><label for="gsearch" class="sr-only">Search all panels</label>
 <div class="hs-box"><svg class="i" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="gsearch" type="search" placeholder="Search questions across all panels..." aria-label="Search all panels" data-i18n-aria="aria_search_all"></div>
-<p class="chips-lbl" id="chips-lbl">Popular questions</p><div class="chips" id="chips" role="group" aria-labelledby="chips-lbl"></div></div></div>
+<p class="gcount" id="gcount" role="status" aria-live="polite"></p></div></div>
 </header>
 <main class="no-print">
 <div class="note" id="fire-note">If you are unsure or see a fire alarm, contact Vyanet at 855-855-0101 or connect@vyanet.com.</div>
@@ -340,6 +352,7 @@ body:not([data-view="home"]) .hero{padding:34px 24px 30px}
 <p id="gempty" class="hidden muted">No matching questions. Try another word.</p>
 <div id="home-browse">
 <p id="choose-mfr">Choose a manufacturer:</p>
+<p class="muted pick-hint" id="pick-hint">Pick your panel to see popular questions.</p>
 <div class="cards" id="mfr-cards"></div>
 </div>
 
@@ -368,6 +381,7 @@ body:not([data-view="home"]) .hero{padding:34px 24px 30px}
 <button type="button" class="back" id="back-panel">&larr; Back to panels</button>
 <nav class="crumb" id="crumb-panel" aria-label="Breadcrumb" data-i18n-aria="aria_crumb"></nav>
 <div class="p-head"><h2 id="ptitle"></h2><figure id="pimg" class="p-img hidden"></figure></div>
+<div class="pchips-wrap" id="pchips-wrap"><p class="chips-lbl" id="chips-lbl">Popular questions</p><div class="chips" id="chips" role="group" aria-labelledby="chips-lbl"></div></div>
 <p id="pintro"></p>
 <div class="kp-wrap hidden" id="kp-wrap">
 <h3 data-i18n="which_keypad">Which keypad do you have?</h3>
@@ -515,28 +529,35 @@ document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closes
 window.addEventListener('beforeprint',()=>{ document.querySelectorAll('.acc-btn').forEach(b=>{ b.dataset.pre=b.getAttribute('aria-expanded'); setAcc(b,true); }); });
 window.addEventListener('afterprint',()=>{ document.querySelectorAll('.acc-btn').forEach(b=>{ if(b.dataset.pre) setAcc(b,b.dataset.pre==='true'); }); });
 const CHIPS=[
- {en:['Low battery beep','low battery beep'],es:['Pitido de batería baja','batería baja pitido']},
- {en:['Cancel a false alarm','cancel false alarm'],es:['Cancelar una falsa alarma','cancelar falsa alarma']},
- {en:['Arm / disarm','arm disarm'],es:['Armar / desarmar','armar desarmar']},
- {en:['Bypass a zone','bypass zone'],es:['Anular una zona','anular zona']},
- {en:['Power outage','power outage'],es:['Corte de energía','corte de energía']},
- {en:['Change smoke detector battery','smoke detector battery'],es:['Batería del detector de humo','batería detector de humo']},
- {en:['Change a user code','change user code'],es:['Cambiar un código de usuario','cambiar código de usuario']},
- {en:['Keypad says trouble','trouble'],es:['El teclado dice falla','falla']}
+ {en:'Low battery beep',es:'Pitido de batería baja',re:[/low battery|lo bat|\bbat\b/i,/(ac|trouble)[^?]*battery|battery (trouble|message)/i]},
+ {en:'Cancel a false alarm',es:'Cancelar una falsa alarma',re:[/false alarm|cancel/i,/silence an alarm|disarm and silence|silence the keypad or an alarm/i]},
+ {en:'Arm / disarm',es:'Armar / desarmar',re:[/how do i disarm/i,/how do i arm/i]},
+ {en:'Bypass a zone',es:'Anular una zona',re:[/bypass/i]},
+ {en:'Power outage',es:'Corte de energía',re:[/\bAC\b|power trouble|power/i]},
+ {en:'Reset after a smoke alarm',es:'Restablecer después de una alarma de humo',re:[/reset after smoke|reset[^?]*(smoke|fire)|smoke/i]},
+ {en:'Change a user code',es:'Cambiar un código de usuario',re:[/user code|add a user|code/i]},
+ {en:'Keypad says trouble',es:'El teclado dice falla',re:[/trouble|\bcheck\b|beeping/i]}
 ];
-function renderChips(){
-  const el=$('chips'); if(!el) return;
+function chipFaqIndex(p,c){ for(const r of c.re){ const i=(p.faqs||[]).findIndex(f=>r.test(f.q||'')); if(i>=0) return i; } return -1; }
+function jumpToFaq(p,i){
+  const ps=$('psearch'); if(ps && ps.value){ ps.value=''; }
+  renderFaqList(p, resolveKp(p)); $('pempty').classList.add('hidden');
+  const item=document.querySelectorAll('#list .acc')[i]; if(!item) return;
+  const btn=item.querySelector('.acc-btn'); setAcc(btn,true);
+  item.classList.remove('flash'); void item.offsetWidth; item.classList.add('flash');
+  item.scrollIntoView({block:'start'});
+  try{btn.focus({preventScroll:true})}catch(e){btn.focus()}
+}
+function renderChips(p){
+  const el=$('chips'), wrap=$('pchips-wrap'); if(!el) return;
+  if(!p){ const h=(location.hash||'').replace(/^#/,'').split('/').filter(Boolean); p=h.length>=2?panelById(h[1]):null; }
   const L=LANG==='es'?'es':'en';
-  el.innerHTML=CHIPS.map((c,i)=>'<button type="button" class="chip" data-chip="'+i+'">'+escHtml(c[L][0])+'</button>').join('');
   const lb=$('chips-lbl'); if(lb) lb.textContent=t('popular_q');
-  el.querySelectorAll('[data-chip]').forEach(b=>{ b.onclick=()=>{
-    const c=CHIPS[+b.getAttribute('data-chip')][LANG==='es'?'es':'en'];
-    const g=$('gsearch'); g.value=c[1];
-    if((location.hash||'').length>1) go('');
-    filterGlobal();
-    if(typeof scheduleLog==='function') scheduleLog('gsearch',true);
-    const r=$('gresults'); if(r && !r.classList.contains('hidden')) r.scrollIntoView({behavior:'smooth',block:'start'});
-  }; });
+  if(!p){ el.innerHTML=''; if(wrap) wrap.classList.add('hidden'); return; }
+  const items=CHIPS.map((c,ci)=>({c,ci,i:chipFaqIndex(p,c)})).filter(x=>x.i>=0);
+  if(wrap) wrap.classList.toggle('hidden',!items.length);
+  el.innerHTML=items.map(x=>'<button type="button" class="chip" data-faq="'+x.i+'" data-chip="'+x.ci+'">'+escHtml(x.c[L])+'</button>').join('');
+  el.querySelectorAll('[data-faq]').forEach(b=>{ b.onclick=()=>jumpToFaq(p,+b.getAttribute('data-faq')); });
 }
 
 /* ---- i18n ---- */
@@ -603,6 +624,9 @@ const I18N_UI={
     season_all:'See all seasonal tips',
     season_tag:'Seasonal tip',
     popular_q:'Popular questions',
+    pick_hint:'Pick your panel to see popular questions.',
+    res_count:'{n} answers for "{q}"',
+    res_show:'Show answers',
     img_alt:'{name} control panel, manufacturer photo',
     img_cap:'Photo: manufacturer',
     every_month:'Every month',
@@ -671,6 +695,9 @@ const I18N_UI={
     season_all:'Ver todos los consejos de temporada',
     season_tag:'Consejo de temporada',
     popular_q:'Preguntas frecuentes',
+    pick_hint:'Elija su panel para ver las preguntas frecuentes.',
+    res_count:'{n} respuestas para "{q}"',
+    res_show:'Ver respuestas',
     img_alt:'Panel de control {name}, foto del fabricante',
     img_cap:'Foto: fabricante',
     every_month:'Todos los meses',
@@ -779,6 +806,7 @@ function applyUiI18n(){
   const hp=document.querySelector('header .hero-sub');
   if(ht) ht.textContent=t('home_title');
   if(hp) hp.textContent=t('home_sub');
+  const ph=document.getElementById('pick-hint'); if(ph) ph.textContent=t('pick_hint');
   const cm=document.getElementById('choose-mfr');
   if(cm) cm.textContent=t('choose_mfr');
   const ht2=document.getElementById('helpful-tools');
@@ -1122,6 +1150,7 @@ function renderPanel(mfrId, panelId){
   $('back-panel').textContent=t('back_panels')+' ('+(m?m.name:p.mfrName)+')';
   $('back-panel').onclick=()=>go(p.mfr);
   $('ptitle').textContent=p.fullName;
+  setTimeout(()=>renderChips(p),0);
   (function(){const f=$('pimg'); if(!f) return; if(!p.img){f.classList.add('hidden'); f.innerHTML=''; return;}
     const alt=t('img_alt').replace('{name}',p.fullName);
     f.innerHTML='<img src="'+p.img.src+'" alt="'+escHtml(alt)+'" width="'+(p.img.w||'')+'" height="'+(p.img.h||'')+'"><figcaption>'+escHtml(t('img_cap'))+'</figcaption>';
@@ -1392,6 +1421,7 @@ $('psearch').oninput=filterPanel;
 function filterGlobal(){
   const raw=$('gsearch').value;
   const browse=$('home-browse'), results=$('gresults'), empty=$('gempty');
+  { const gc=$('gcount'); if(gc) gc.textContent=''; }
   if(!raw.trim()){
     results.classList.add('hidden'); results.innerHTML='';
     empty.classList.add('hidden');
@@ -1458,6 +1488,11 @@ function filterGlobal(){
     return acc(`<span class="panel-tag">${escHtml(p.fullName)}</span>${q}`,`${ans}<p><button type="button" class="back" data-hash="${p.mfr}/${p.id}">${escHtml(openLbl)}</button></p>`);
   }).join('');
   openAcc('#gresults',3);
+  const nres=results.querySelectorAll('.acc').length;
+  const msg=t('res_count').replace('{n}',nres).replace('{q}',raw.trim());
+  results.insertAdjacentHTML('afterbegin','<p class="res-count">'+escHtml(msg)+'</p>');
+  const gc=$('gcount'); if(gc){ gc.innerHTML=escHtml(msg)+' <a href="#" id="gcount-go">'+escHtml(t('res_show'))+' &darr;</a>'; const a=$('gcount-go'); if(a) a.onclick=e=>{e.preventDefault();results.scrollIntoView({block:'start'});}; }
+  clearTimeout(window._gScrollT); window._gScrollT=setTimeout(()=>{ if(document.activeElement===$('gsearch') && $('gsearch').value.trim()===raw) results.scrollIntoView({block:'start'}); },1200);
 }
 $('gsearch').oninput=filterGlobal;
 
@@ -1541,7 +1576,7 @@ function scheduleLog(inputId, now){
 ['gsearch','psearch','tsearch'].forEach(id=>{
   const el=$(id); if(!el) return;
   el.addEventListener('input',()=>scheduleLog(id,false));
-  el.addEventListener('keydown',e=>{ if(e.key==='Enter') scheduleLog(id,true); });
+  el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ scheduleLog(id,true); if(id==='gsearch'){ const r=$('gresults'); if(r&&!r.classList.contains('hidden')) r.scrollIntoView({block:'start'}); } } });
 });
 (function(){ const n=$('privacy-note'); if(n) n.classList.toggle('hidden', !SEARCH_LOG_ENDPOINT); })();
 window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
