@@ -1722,4 +1722,235 @@ const _pcb0=$('print-card-btn');
 if(_pcb0) _pcb0.onclick=printQuickCard;
 applyUiI18n();
 go(location.hash.slice(1));
-</script></body></html>
+</script><style>
+#av-bubble{position:fixed;right:20px;bottom:20px;z-index:9000;display:flex;align-items:center;gap:8px;background:#da0029;color:#fff;border:0;border-radius:50px;padding:14px 20px;font:600 15px Poppins,sans-serif;letter-spacing:1px;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+#av-bubble:hover,#av-bubble:focus-visible{background:#a8001f;outline:3px solid #fff;outline-offset:-5px}
+#av-bubble svg{width:22px;height:22px}
+#av-panel{position:fixed;right:20px;bottom:86px;z-index:9001;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 110px);background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden;font-family:Poppins,sans-serif;color:#333}
+#av-panel[hidden]{display:none}
+.av-head{background:#2e2f2a;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.av-head h2{margin:0;font:600 17px Poppins,sans-serif;color:#fff}
+.av-head p{margin:2px 0 0;font-size:12px;color:#dbd8d8}
+.av-x{background:none;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:8px}
+.av-x:focus-visible{outline:2px solid #fff}
+#av-log{flex:1;overflow-y:auto;padding:14px;background:#f2f2f2;display:flex;flex-direction:column;gap:10px}
+.av-msg{max-width:92%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.45;word-wrap:break-word}
+.av-msg p{margin:0 0 6px}.av-msg p:last-child{margin-bottom:0}
+.av-me{align-self:flex-end;background:#da0029;color:#fff;border-bottom-right-radius:4px}
+.av-bot{align-self:flex-start;background:#fff;border:1px solid #dbd8d8;border-bottom-left-radius:4px}
+.av-bot h4{margin:0 0 4px;font-size:14px;color:#2e2f2a}
+.av-warn{background:#fff0f2;border-left:4px solid #da0029;padding:8px 10px;border-radius:8px;font-weight:600;margin-bottom:6px}
+.av-card{border-top:1px solid #eee;padding-top:8px;margin-top:8px}
+.av-card:first-child{border-top:0;padding-top:0;margin-top:0}
+.av-src{font-size:12px;color:#5e5758}
+.av-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.av-jump{background:#fff;color:#da0029;border:1.5px solid #da0029;border-radius:50px;padding:6px 12px;font:600 12.5px Poppins,sans-serif;cursor:pointer;text-align:left}
+.av-jump:hover,.av-jump:focus-visible{background:#da0029;color:#fff}
+.av-bot a{color:#da0029;font-weight:600}
+.av-bot .svc-btn{font-size:12px!important;padding:10px 14px!important;letter-spacing:1px!important;display:inline-flex;margin-top:6px}
+.av-form{display:flex;gap:8px;padding:10px;border-top:1px solid #dbd8d8;background:#fff}
+.av-form input{flex:1;border:1.5px solid #dbd8d8;border-radius:50px;padding:10px 14px;font:15px Poppins,sans-serif;min-width:0}
+.av-form input:focus{outline:none;border-color:#da0029}
+.av-form button{background:#da0029;color:#fff;border:0;border-radius:50px;padding:0 16px;font:600 14px Poppins,sans-serif;cursor:pointer}
+.av-ctx{font-size:12px;color:#5e5758;padding:6px 14px;background:#fff;border-top:1px solid #eee}
+@media (max-width:520px){#av-panel{right:0;left:0;bottom:0;width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0}#av-bubble{right:14px;bottom:14px;padding:12px 16px}body.av-open #av-bubble{display:none}}
+@media print{#av-bubble,#av-panel{display:none!important}}
+</style>
+<button type="button" id="av-bubble" aria-haspopup="dialog" aria-controls="av-panel" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="av-bubble-l">Ask Vyanet</span></button>
+<section id="av-panel" role="dialog" aria-modal="false" aria-labelledby="av-title" hidden>
+  <div class="av-head"><div><h2 id="av-title">Ask Vyanet</h2><p id="av-sub"></p></div><button type="button" class="av-x" id="av-close" aria-label="Close">×</button></div>
+  <div id="av-log" aria-live="polite"></div>
+  <div class="av-ctx" id="av-ctx" hidden></div>
+  <form class="av-form" id="av-form" autocomplete="off"><label for="av-in" class="sr-only" id="av-in-l" style="position:absolute;left:-9999px">Your question</label><input id="av-in" type="text" maxlength="200"><button type="submit" id="av-send">Send</button></form>
+</section>
+<script>
+(function(){
+const AV_T={
+ en:{bubble:'Ask Vyanet',title:'Ask Vyanet',sub:'Answers from this help site',ph:'Type your question…',send:'Send',close:'Close chat',inl:'Your question',
+  hello:'Hi! Ask me about your alarm panel, like “my Vista 20P is beeping”, “XT75 won’t arm” or “what does AC LOSS mean”. I answer from this site’s guides.',
+  ctx:'Answering for: {p}',fireSafety:'If there’s an actual fire or CO alarm, get out and call 911.',
+  open:'Open this answer',more:'Other answers that may help:',pick:'Which panel do you have? Pick it so I can give exact steps:',seeAll:'See all {b} panels',
+  pickAny:'For exact steps, tell me your panel model (for example “Vista 20P” or “XT75”), or pick your brand on the home page.',
+  noMatch:'Sorry, I couldn’t find that on this site.',call:'Call Vyanet at 855-855-0101 or email connect@vyanet.com.',
+  fireCall:'Call Vyanet at 855-855-0101. For an actual fire alarm, call 911 first.',fireOnly:'For fire panels, please don’t troubleshoot the panel yourself. Here is what the site shows about its sounds:',
+  fireNone:'For fire panels, please don’t troubleshoot the panel yourself.',
+  kpMsg:'Keypad message',sound:'Sound',decoder:'Open the message decoder',manual:'Owner’s manual (PDF)',gl:'Glossary',glOpen:'Open the glossary',tip:'Seasonal tip',tipOpen:'See all seasonal tips',
+  sugg:'Here are the sections that match:',walk:'Start this walkthrough',video:'Watch the videos',panelOpen:'Open the {p} page',
+  vids:'Videos for {p}:',walkIntro:'Step-by-step walkthrough',kpNote:'Steps shown for your keypad: {k}',inst:'Installer settings, codes and programming are handled by Vyanet, so they are not covered here.',noManual:'This site doesn’t have an owner’s manual link for the {p}.'},
+ es:{bubble:'Pregunte a Vyanet',title:'Pregunte a Vyanet',sub:'Respuestas de este sitio de ayuda',ph:'Escriba su pregunta…',send:'Enviar',close:'Cerrar chat',inl:'Su pregunta',
+  hello:'¡Hola! Pregúnteme sobre su panel de alarma, por ejemplo “mi Vista 20P está pitando”, “el XT75 no arma” o “qué significa AC LOSS”. Respondo con las guías de este sitio.',
+  ctx:'Respondiendo para: {p}',fireSafety:'Si hay un incendio real o una alarma de CO, salga y llame al 911.',
+  open:'Abrir esta respuesta',more:'Otras respuestas que pueden ayudar:',pick:'¿Qué panel tiene? Elíjalo para darle los pasos exactos:',seeAll:'Ver todos los paneles {b}',
+  pickAny:'Para pasos exactos, dígame el modelo de su panel (por ejemplo “Vista 20P” o “XT75”), o elija su marca en la página de inicio.',
+  noMatch:'Lo siento, no encontré eso en este sitio.',call:'Llame a Vyanet al 855-855-0101 o escriba a connect@vyanet.com.',
+  fireCall:'Llame a Vyanet al 855-855-0101. Si hay una alarma de incendio real, llame primero al 911.',fireOnly:'En paneles contra incendios, no intente reparar el panel usted mismo. Esto es lo que el sitio muestra sobre sus sonidos:',
+  fireNone:'En paneles contra incendios, no intente reparar el panel usted mismo.',
+  kpMsg:'Mensaje del teclado',sound:'Sonido',decoder:'Abrir el decodificador de mensajes',manual:'Manual del usuario (PDF)',gl:'Glosario',glOpen:'Abrir el glosario',tip:'Consejo de temporada',tipOpen:'Ver todos los consejos de temporada',
+  sugg:'Estas son las secciones que coinciden:',walk:'Iniciar esta guía paso a paso',video:'Ver los videos',panelOpen:'Abrir la página de {p}',
+  vids:'Videos para {p}:',walkIntro:'Guía paso a paso',kpNote:'Pasos para su teclado: {k}',inst:'Vyanet se encarga de la configuración, los códigos y la programación del instalador, por eso no se incluyen aquí.',noManual:'Este sitio no tiene un enlace al manual del usuario del {p}.'}
+};
+const T=k=>(AV_T[LANG==='es'?'es':'en'][k]||AV_T.en[k]);
+const L=()=>LANG==='es'?'es':'en';
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+const FIRE_MFR=new Set(['fire-lite','notifier','silent-knight','edwards','kidde','hochiki','gamewell-fci']);
+function isFire(p){ return FIRE_MFR.has(p.mfr) || (/fire alarm control|fire control/i.test(p.desc||'') && !/combo|intrusion/i.test(p.desc||'')); }
+// ---- aliases ----
+const BRAND_AL={honeywell:['honeywell','ademco','resideo'],dsc:['dsc'],'ge-interlogix':['ge','interlogix','ge interlogix'],caddx:['caddx'],'2gig':['2gig','2 gig'],qolsys:['qolsys','qolsis'],'first-alert':['first alert'],'fire-lite':['fire lite','firelite'],'silent-knight':['silent knight','silentknight'],dmp:['dmp'],elk:['elk'],napco:['napco'],bosch:['bosch','radionics'],notifier:['notifier'],edwards:['edwards','est'],kidde:['kidde'],hochiki:['hochiki'],'gamewell-fci':['gamewell','fci'],aes:['aes'],fbii:['fbii'],hai:['hai']};
+function aliasRe(a){ const parts=norm(a).replace(/([a-z])(\d)/g,'$1 $2').replace(/(\d)([a-z])/g,'$1 $2').split(' ').filter(Boolean); if(!parts.length) return null; return new RegExp('\\b'+parts.map(x=>x.replace(/[^a-z0-9]/g,'')).join('\\s*')+'\\b'); }
+const PAL=[];
+DATA.panels.forEach(p=>{ const names=new Set([p.name, p.id.replace(/-/g,' ')]); const n=norm(p.name);
+  if(/^vista /.test(n)) names.add(n.replace(/^vista /,'vista'));
+  names.forEach(a=>{ const c=norm(a).replace(/\s/g,''); if(c.length<3 || /^(series|panel|keypad)$/.test(c)) return; const re=aliasRe(a); if(re) PAL.push({p,re,len:c.length,brand:false}); }); });
+(function(){ const cnt={}; DATA.panels.forEach(p=>{ const f=norm(p.name).split(' '); if(f.length>1 && /\d/.test(f[0]) && f[0].length>=2) (cnt[f[0]]=cnt[f[0]]||[]).push(p); }); Object.entries(cnt).forEach(([k,ps])=>{ if(ps.length===1 && !PAL.some(a=>a.p!==ps[0]&&a.re.test(k))) PAL.push({p:ps[0],re:aliasRe(k),len:k.length,brand:false}); }); })();
+const EXTRA_AL={'iq-panel':['iq2','iq 2','iq panel 2','iq2+']};
+Object.entries(EXTRA_AL).forEach(([id,al])=>{ const p=panelById(id); if(p) al.forEach(a=>PAL.push({p,re:aliasRe(a),len:norm(a).replace(/\s/g,'').length,brand:false})); });
+const BAL=[]; Object.entries(BRAND_AL).forEach(([id,al])=>{ if(!DATA.manufacturers.some(m=>m.id===id)) return; al.forEach(a=>BAL.push({id,re:aliasRe(a)})); });
+// ---- vocab for typo correction ----
+const VOC=new Map();
+function addV(s,w){ norm(s).split(' ').forEach(x=>{ if(x.length>=3 && !/^\d+$/.test(x)) VOC.set(x,(VOC.get(x)||0)+(w||1)); }); }
+DATA.panels.forEach(p=>{ addV(p.name,5); addV(p.mfrName,5); (p.faqs||[]).forEach(f=>{ addV(f.q,2); addV(stripHtml(f.a||'')); if(f.es){addV(f.es.q,2); addV(stripHtml(f.es.a||''));} }); });
+(DATA.glossary||[]).forEach(g=>{addV(g.w.en,3);addV(g.w.es,3);addV(g.d.en);addV(g.d.es);});
+((DATA.extras||{}).decoder||[]).forEach(r=>{addV(r.msg,4);addV(r.meaning);});
+Object.values((DATA.i18n&&DATA.i18n.es)||{}).forEach(v=>addV(v));
+SYN_GROUPS.forEach(g=>g.forEach(w=>addV(w,5)));
+['offline','beeping','beeps','chirping','arm','wont','disarm','sensor','battery','camera','password','keypad','manual','video','videos','glossary','smoke','fire','carbon','monoxide','power','outage','false','cancel','reset','trouble'].forEach(w=>addV(w,5));
+function dl(a,b){ const m=a.length,n=b.length; if(Math.abs(m-n)>2) return 9; const d=[]; for(let i=0;i<=m;i++){d[i]=[i];} for(let j=0;j<=n;j++) d[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1; d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c); if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1); } return d[m][n]; }
+const _fixCache=new Map();
+function fixWord(w){ if(w.length<4||/\d/.test(w)||VOC.has(w)||STOPWORDS.has(w)) return w; if(_fixCache.has(w)) return _fixCache.get(w);
+  const max=w.length>=7?2:1; let best=w,bd=9,bf=0;
+  for(const [v,f] of VOC){ if(Math.abs(v.length-w.length)>max) continue; if(v[0]!==w[0] && max<2) { /* allow first-letter typo only for long words */ continue; } const d=dl(w,v); if(d<=max && (d<bd || (d===bd && f>bf))){best=v;bd=d;bf=f;} }
+  _fixCache.set(w,best); return best; }
+function fixQuery(s){ return norm(s).split(' ').map(fixWord).join(' '); }
+// ---- current panel ----
+function pagePanel(){ const parts=(location.hash||'').replace(/^#/,'').split('/').filter(Boolean); if(parts.length>=2 && parts[0]!=='tool') return panelById(parts[1]); if(parts.length===1) return panelById(parts[0]); return null; }
+// ---- content helpers ----
+function faqQ(f){ return L()==='es'?(f.es?f.es.q:trText(f.q)):f.q; }
+function faqPlain(p,f){ if(f.x) return ''; let h=faqBodyHtml(f,resolveKp(p)); let s=stripHtml(h).replace(/\s+/g,' ').trim(); if(L()==='es'){ const map=(DATA.i18n&&DATA.i18n.es)||{}; const a=stripHtml(f.a||'').trim(); const tr=map[a]||trText(a); const st=s.slice(a.length).trim(); s=(tr||a)+(st?' '+trText(st):''); } return s; }
+function soundPlain(f){ const h=L()==='es'&&f.es?f.es.a:f.a; const d=document.createElement('div'); d.innerHTML=h||''; d.querySelectorAll('.x-src,.vids,button').forEach(x=>x.remove()); return d.textContent.replace(/\s+/g,' ').trim(); }
+function clip(s,n){ s=String(s||''); if(s.length<=n) return s; const c=s.slice(0,n); const i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; ')); return (i>n*0.5?c.slice(0,i+1):c.replace(/\s+\S*$/,''))+' …'; }
+const isFireFaqOK=f=>f.x==='sound';
+function panelHits(p,qt){ const fire=isFire(p); return (p.faqs||[]).map((f,i)=>({f,i,s:scoreFaq(f,qt)})).filter(x=>x.s>0 && (!fire||isFireFaqOK(x.f))).sort((a,b)=>b.s-a.s||a.i-b.i); }
+function decoderHits(qn,mfr){ const rows=(DATA.extras||{}).decoder||[]; const out=[];
+  rows.forEach((r,i)=>{ const vs=r.msg.split('/').map(v=>norm(v.replace(/#+/g,' NUM '))).filter(Boolean); let best=0;
+    vs.forEach(v=>{ const re=new RegExp('\\b'+v.split(' ').map(x=>x==='num'?'\\d{1,3}':x).join('\\s*')+'\\b'); if(re.test(qn)) best=Math.max(best,v.length+(v.includes('num')?3:0)); });
+    if(best>=2 && !/^(alarm|armed|ready|trouble)$/.test(vs.join(''))||best>=6) out.push({r,i,s:best+(mfr&&r.mfr===mfr?5:0)}); });
+  return out.filter(x=>x.s>0).sort((a,b)=>b.s-a.s); }
+function decCard(r){ return '<div class="av-card"><h4>'+escHtml(T('kpMsg'))+': '+escHtml(L()==='es'?glossKeypad(r.msg):r.msg)+'</h4><p>'+escHtml(trText(r.meaning))+'</p>'+(r.beep&&r.beep!=='none'?'<p class="av-src">'+escHtml(T('sound'))+': '+escHtml(trText(r.beep))+'</p>':'')+'<p class="av-src">'+escHtml(mfrName(r.mfr))+'</p></div>'; }
+function glHits(qt){ const r=(DATA.glossary||[]).map(g=>({g,s:scoreText(qt,g.w.en+' '+g.w.es,g.d.en+' '+g.d.es+(g.k?' '+g.k.en+' '+g.k.es:''))})).filter(x=>x.s>=8).sort((a,b)=>b.s-a.s); return r.filter(x=>x.s>=r[0].s*0.75); }
+function tipHits(qt){ return SEASONAL.map(x=>({x,s:scoreText(qt,x.title.en+' '+x.title.es,x.body.en+' '+x.body.es)})).filter(h=>h.s>=8).sort((a,b)=>b.s-a.s); }
+let JUMPS=[]; function jb(label,fn){ JUMPS.push(fn); return '<button type="button" class="av-jump" data-j="'+(JUMPS.length-1)+'">'+escHtml(label)+'</button>'; }
+function gotoPanelFaq(p,i){ return ()=>{ const want=p.mfr+'/'+p.id; if((location.hash||'').replace(/^#/,'')!==want){ go(want); } setTimeout(()=>jumpToFaq(p,i),60); maybeCloseMobile(); }; }
+function gotoHash(h,after){ return ()=>{ go(h); if(after) setTimeout(after,80); maybeCloseMobile(); }; }
+function maybeCloseMobile(){ if(window.matchMedia('(max-width:520px)').matches) closeChat(false); }
+function svcHtml(p){ return p?renderServiceBtn((mfrById(p.mfr)||{}).name||p.mfrName,p.name):renderServiceBtnGeneric(); }
+function fallback(p,fire){ return '<p>'+escHtml(T('noMatch'))+'</p><p>'+escHtml(fire?T('fireCall'):T('call'))+'</p>'+svcHtml(p); }
+// ---- main answer ----
+function answer(raw){
+  JUMPS=[];
+  const qn0=norm(raw);
+  const qn=fixQuery(raw);
+  let html=''; let count=0;
+  const fireQ=/\b(fire|smoke|incendio|fuego|humo|co|carbon monoxide|monoxido|monoxido de carbono|co2?)\b/.test(qn) && !/\bcode?s?\b/.test(qn0.replace(/\bco\b/,''));
+  const fireQ2=/\b(fire|smoke|incendio|fuego|humo|carbon monoxide|monoxido)\b/.test(qn)||/\bco\b/.test(qn0)||/\bco alarm\b/.test(qn0);
+  if(fireQ2) html+='<p class="av-warn">'+escHtml(T('fireSafety'))+'</p>';
+  // panel / brand detection
+  let mp=null,ml=0; PAL.forEach(a=>{ if(a.re.test(qn)||a.re.test(qn0)){ if(a.len>ml){ml=a.len;mp=a.p;} } });
+  let brand=null; BAL.forEach(b=>{ if(b.re&&(b.re.test(qn0)||b.re.test(qn))) brand=brand||b.id; });
+  if(mp && brand && mp.mfr!==brand){ const alt=PAL.filter(a=>a.p.mfr===brand&&(a.re.test(qn)||a.re.test(qn0))).sort((a,b)=>b.len-a.len)[0]; if(alt) mp=alt.p; }
+  if(!mp && brand){ const bp=DATA.panels.filter(x=>x.mfr===brand); if(bp.length===1) mp=bp[0]; }
+  const cur=pagePanel();
+  const p=mp|| (cur && (!brand||cur.mfr===brand)?cur:null);
+  // strip panel/brand words before scoring
+  let qs=qn.replace(/\b(what|whats|does|do|mean|means|meaning|significa|significan|que|quiere decir)\b/g,' ').replace(/\bcarbon monoxide\b|\bmonoxido( de carbono)?\b/g,' co detector '); PAL.filter(a=>mp&&a.p===mp).forEach(a=>{qs=qs.replace(a.re,' ');}); BAL.forEach(b=>{ if(b.re) qs=qs.replace(b.re,' '); });
+  let qt=parseQuery(qs);
+  const fire=p&&isFire(p);
+  const dec=decoderHits(qn0.length?qn0:qn,p?p.mfr:brand);
+  let short=qt.meaningful.length && norm(qs).split(' ').filter(w=>w&&!STOPWORDS.has(w)).length<=2;
+  if(mp && mp!==cur){ setTimeout(()=>{ go(mp.mfr+'/'+mp.id); },0); }
+  ctx(p);
+  // manual request (qt recomputed below)
+  const MRE=/\b(owners?|users?|del usuario|manual|manuals|guide|guia|instructions|instrucciones|pdf)\b/g;
+  const wantsManual=/\b(manual|guide|guia|instructions|instrucciones|pdf)\b/.test(qn);
+  if(/\b(installer|instalador|programming|programacion|program mode|dealer code|master reset|factory reset)\b/.test(qn)) return {html:'<p>'+escHtml(T('inst'))+'</p><p>'+escHtml(p&&isFire(p)?T('fireCall'):T('call'))+'</p>'+svcHtml(p),count:0};
+  if(wantsManual){
+    if(p && p.guide && p.guide.url){ html+='<div class="av-card"><p><a href="'+escHtml(p.guide.url)+'" target="_blank" rel="noopener noreferrer">'+escHtml(T('manual'))+' – '+escHtml(p.fullName)+'</a></p></div>'; count++; }
+    else if(p){ html+='<p>'+escHtml(T('noManual').replace('{p}',p.fullName))+'</p>'; }
+    if(!parseQuery(qs.replace(MRE,' ')).meaningful.length){ if(!p){ html+='<p>'+escHtml(T('pickAny'))+'</p>'; } html+=fallbackShort(p,p&&isFire(p)); if(!count&&p) html+=svcHtml(p); return {html,count}; }
+    qs=qs.replace(MRE,' ');
+  }
+  qt=parseQuery(qs); short=qt.meaningful.length && norm(qs).split(' ').filter(w=>w&&!STOPWORDS.has(w)).length<=2;
+  if(p && fire){
+    const hits=panelHits(p,qt.meaningful.length?qt:parseQuery('sound beep'));
+    const sg=(p.faqs||[]).map((f,i)=>({f,i})).filter(x=>x.f.x==='sound');
+    const fdec=dec.filter(x=>x.r.mfr===p.mfr && !/silenc|reset|reajust|restablec|acknowledge|ack\b|press|pulse|disarm/i.test(x.r.meaning)).slice(0,2);
+    if(sg.length||fdec.length){ html+='<p>'+escHtml(T('fireOnly'))+'</p>'; fdec.forEach(x=>{html+=decCard(x.r);count++;}); sg.slice(0,1).forEach(x=>{ html+='<div class="av-card"><h4>'+escHtml(faqQ(x.f))+'</h4><p>'+escHtml(clip(soundPlain(x.f),420))+'</p><div class="av-btns">'+jb(T('open'),gotoPanelFaq(p,x.i))+'</div></div>'; count++; }); }
+    else html+='<p>'+escHtml(T('fireNone'))+'</p>';
+    if(!sg.length && !fdec.length && !hits.length){ html+='<div class="av-btns">'+jb(T('panelOpen').replace('{p}',p.fullName),gotoHash(p.mfr+'/'+p.id))+'</div>'; }
+    html+='<p><strong>'+escHtml(T('fireCall'))+'</strong></p>'+svcHtml(p);
+    return {html,count};
+  }
+  if(p){
+    let hits=panelHits(p,qt);
+    // keypad message: prefer FAQ about it
+    dec.filter(x=>x.r.mfr===p.mfr).slice(0,1).forEach(x=>{ html+=decCard(x.r); count++; });
+    if(!hits.length && !dec.length && !count){ // nothing on panel: try glossary/tips
+      const g=glHits(qt).slice(0,1), tp=tipHits(qt).slice(0,1);
+      g.forEach(x=>{ html+=glCard(x.g); count++; }); tp.forEach(x=>{ html+=tipCard(x.x); count++; });
+      if(!count) return {html:html+fallback(p,false),count:0};
+      html+=fallbackShort(p); return {html,count};
+    }
+    if(short && hits.length>1){
+      html+='<p>'+escHtml(T('sugg'))+'</p><div class="av-btns">'+hits.slice(0,5).map(h=>jb(faqQ(h.f),gotoPanelFaq(p,h.i))).join('')+'</div>';
+      count+=Math.min(5,hits.length);
+    } else if(hits.length){
+      const h=hits[0]; const f=h.f;
+      if(f.x){ const lbl=f.x==='fix'?T('walk'):f.x==='vid'?T('video'):T('open'); html+='<div class="av-card"><h4>'+escHtml(faqQ(f))+'</h4>'+(f.x==='sound'||f.x==='modes'||f.x==='batt'?'<p>'+escHtml(clip(soundPlain(f),380))+'</p>':'')+'<div class="av-btns">'+jb(lbl,gotoPanelFaq(p,h.i))+'</div></div>'; }
+      else { const kp=(p.keypads||[]).find(k=>k.id===resolveKp(p)); html+='<div class="av-card"><h4>'+escHtml(faqQ(f))+'</h4><p>'+escHtml(clip(faqPlain(p,f),420))+'</p>'+(f.steps&&kp?'<p class="av-src">'+escHtml(T('kpNote').replace('{k}',L()==='es'&&kp.es?kp.es:kp.label))+'</p>':'')+'<div class="av-btns">'+jb(T('open'),gotoPanelFaq(p,h.i))+'</div></div>'; }
+      count++;
+      const rest=hits.slice(1,4); if(rest.length){ html+='<p class="av-src" style="margin-top:8px">'+escHtml(T('more'))+'</p><div class="av-btns">'+rest.map(x=>jb(faqQ(x.f),gotoPanelFaq(p,x.i))).join('')+'</div>'; count+=rest.length; }
+    }
+    if(p.mfr==='dmp' && /\bvideos?\b/.test(qn) && !hits.some(h=>h.f.vs)){ const v=(p.faqs||[]).map((f,i)=>({f,i})).filter(x=>x.f.vs).slice(0,4); if(v.length){ html+='<p class="av-src">'+escHtml(T('vids').replace('{p}',p.fullName))+'</p><div class="av-btns">'+v.map(x=>jb(faqQ(x.f),gotoPanelFaq(p,x.i))).join('')+'</div>'; count+=v.length; } }
+    html+=fallbackShort(p);
+    return {html,count};
+  }
+  // no panel known
+  (fireQ2?[]:dec).slice(0,brand?2:3).filter(x=>!brand||x.r.mfr===brand).forEach(x=>{ html+=decCard(x.r); count++; });
+  if(count&&!fireQ2) html+='<div class="av-btns">'+jb(T('decoder'),gotoHash('tool/decoder',()=>{ const i=$('tsearch'); const m=dec[0].r.msg.split('/')[0].replace(/#/g,'').trim(); if(i){ i.value=m; i.dispatchEvent(new Event('input',{bubbles:true})); } }))+'</div>';
+  const g=glHits(qt).slice(0,brand?0:(count?1:(short?3:1))); g.forEach(x=>{ html+=glCard(x.g); count++; });
+  const tp=tipHits(qt).slice(0,brand?0:1); tp.forEach(x=>{ html+=tipCard(x.x); count++; });
+  if(brand){ const ps=DATA.panels.filter(x=>x.mfr===brand).sort((a,b)=>natCmp(a.name,b.name)); const bn=mfrName(brand);
+    html+='<p>'+escHtml(T('pick'))+'</p><div class="av-btns">'+ps.slice(0,8).map(x=>jb(x.name,gotoHash(x.mfr+'/'+x.id))).join('')+(ps.length>8?jb(T('seeAll').replace('{b}',bn),gotoHash(brand)):'')+'</div>';
+    count+=1;
+  } else if(qt.meaningful.length){ html+='<p>'+escHtml(T('pickAny'))+'</p>'; }
+  if(!count) return {html:html+fallback(null,fireQ2),count:0};
+  html+=fallbackShort(null,fireQ2);
+  return {html,count};
+}
+function glCard(g){ return '<div class="av-card"><h4>'+escHtml(T('gl'))+': '+escHtml(g.w[L()])+'</h4><p>'+escHtml(g.d[L()])+'</p>'+(g.link?'<p><a href="'+escHtml(g.link.url)+'" target="_blank" rel="noopener noreferrer">'+escHtml(g.link.label[L()])+'</a></p>':'')+'<div class="av-btns">'+jb(T('glOpen'),gotoHash('tool/glossary',()=>{ const d=[...document.querySelectorAll('dl.gl dt')].find(x=>x.dataset.term===g.w.en); if(d){d.scrollIntoView({block:'center'}); d.focus();} }))+'</div></div>'; }
+function tipCard(x){ return '<div class="av-card"><h4>'+escHtml(T('tip'))+': '+escHtml(x.title[L()])+'</h4><p>'+escHtml(clip(x.body[L()],380))+'</p></div>'; }
+function fallbackShort(p,fire){ return '<p class="av-src" style="margin-top:8px">'+escHtml(fire?T('fireCall'):T('call'))+'</p>'; }
+// ---- UI ----
+const bub=$('av-bubble'), pnl=$('av-panel'), log=$('av-log'), inp=$('av-in'), form=$('av-form');
+function i18n(){ $('av-bubble-l').textContent=T('bubble'); $('av-title').textContent=T('title'); $('av-sub').textContent=T('sub'); inp.placeholder=T('ph'); $('av-send').textContent=T('send'); $('av-close').setAttribute('aria-label',T('close')); $('av-in-l').textContent=T('inl'); const h=log.querySelector('.av-hello'); if(h) h.textContent=T('hello'); ctx(pagePanel()); }
+function ctx(p){ const c=$('av-ctx'); if(p){ c.textContent=T('ctx').replace('{p}',p.fullName); c.hidden=false; } else c.hidden=true; }
+function add(cls,html){ const d=document.createElement('div'); d.className='av-msg '+cls; d.innerHTML=html; log.appendChild(d); d.querySelectorAll('.av-jump').forEach(b=>{ const fn=JUMPS[+b.dataset.j]; b.addEventListener('click',fn); }); log.scrollTop=log.scrollHeight; return d; }
+function openChat(){ pnl.hidden=false; bub.setAttribute('aria-expanded','true'); document.body.classList.add('av-open'); i18n(); if(!log.children.length){ const d=add('av-bot',''); const p=document.createElement('p'); p.className='av-hello'; p.textContent=T('hello'); d.appendChild(p); } setTimeout(()=>inp.focus(),30); }
+function closeChat(focusBub){ pnl.hidden=true; bub.setAttribute('aria-expanded','false'); document.body.classList.remove('av-open'); if(focusBub!==false) bub.focus(); }
+bub.addEventListener('click',()=>pnl.hidden?openChat():closeChat());
+$('av-close').addEventListener('click',()=>closeChat());
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !pnl.hidden) closeChat(); });
+form.addEventListener('submit',e=>{ e.preventDefault(); const q=inp.value.trim(); if(!q) return; inp.value='';
+  const me=add('av-me',''); me.textContent=q;
+  let r; try{ r=answer(q); }catch(err){ console.error(err); r={html:fallback(pagePanel(),false),count:0}; }
+  add('av-bot',r.html); chatLog(q,r.count); });
+function chatLog(q,count){ try{ if(!SEARCH_LOG_ENDPOINT) return; q=String(q).trim().slice(0,120); if(q.length<3) return;
+  q=q.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,'[email]').replace(/\+?\d[\d\s().-]{7,}\d/g,'[number]');
+  const payload=JSON.stringify({query:q,result_count:count,panel_page:'chat:'+currentPage(),language:LANG});
+  if(navigator.sendBeacon) navigator.sendBeacon(SEARCH_LOG_ENDPOINT,new Blob([payload],{type:'text/plain'})); else fetch(SEARCH_LOG_ENDPOINT,{method:'POST',mode:'no-cors',body:payload,keepalive:true}).catch(()=>{}); }catch(e){} }
+['lang-en','lang-es'].forEach(id=>{ const b=$(id); if(b) b.addEventListener('click',()=>setTimeout(i18n,0)); });
+window.addEventListener('hashchange',()=>{ if(!pnl.hidden) ctx(pagePanel()); });
+window.__avAnswer=answer;
+})();
+</script>
+</body></html>
