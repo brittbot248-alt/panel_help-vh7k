@@ -1179,7 +1179,7 @@ function vidCard(v){
     '<span class="vt">'+escHtml(ttl)+'</span><span class="vd">'+escHtml(v.d||'')+'</span></li>';
 }
 function vidsHtml(sets,kid){
-  const all=(DATA.dmpv||[]).filter(v=>sets.indexOf(v.s)>=0 && (v.kp==='any'||v.kp==='app'||!kid||v.kp===kid));
+  const all=(DATA.dmpv||[]).filter(v=>sets.indexOf(v.s)>=0 && (v.kp==='any'||v.kp==='app'||!kid||v.kp===kid)).map((v,i)=>({v,i})).sort((a,b)=>sets.indexOf(a.v.s)-sets.indexOf(b.v.s)||a.i-b.i).map(x=>x.v);
   if(!all.length) return '';
   let h='<div class="vids"><h4 class="vids-h">'+ico('play')+' '+escHtml(t('v_head'))+'</h4>';
   if(sets.indexOf('app')>=0) h+='<p class="x-note">'+escHtml(t('v_app_note'))+'</p>';
